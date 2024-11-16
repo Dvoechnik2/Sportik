@@ -12,7 +12,7 @@ class EventService:
 
     def create_event(self, user_id, name, description, place, date_time, participant_limit, host_name) -> int:
         user = self.user_repo.get_user(user_id)
-        if user is None or (not user.is_verified and len(self.event_repo.get_user_events(user_id)) > 2):
+        if user is None or (not user.is_verified and len(self.event_repo.get_user_events(user_id)) > 1):
             raise PermissionError("User is not verified or has reached the limit for creating events")
         event = Event(None, name, description, place, date_time, participant_limit, user_id, host_name,0)
         return self.event_repo.add_event(event)

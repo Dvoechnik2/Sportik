@@ -45,8 +45,16 @@ class TelegramBotAdapter:
 
         @self.bot.message_handler(func=lambda message: message.text == "Создать мероприятие")
         def handle_create_event(message):
-            self.bot.send_message(message.chat.id, "Введите название мероприятия:")
-            self.bot.register_next_step_handler(message, self.create_event_name)
+            user = self.user_repo.get_user(message.from_user.id)
+            if user is None:
+                self.user_repo.add_user(User(message.chat.id, message.from_user.first_name))
+            if (not user.is_verified and len(self.event_service.get_user_events(user.user_id)) >= 2):
+                self.bot.send_message(message.chat.id,
+                                      "Вы не можете создать больше двух мероприятия. Подтвердите свой номер телефона "
+                                      "с помощью команды /verify.")
+            else:
+                self.bot.send_message(message.chat.id, "Введите название мероприятия:")
+                self.bot.register_next_step_handler(message, self.create_event_name)
 
         @self.bot.message_handler(func=lambda message: message.text == "Посмотреть мероприятия")
         def handle_view_events(message):
@@ -99,6 +107,18 @@ class TelegramBotAdapter:
             self.save_user_phone(message, user_id, user_phone)
 
             self.bot.send_message(message.chat.id, f"Ваш номер {user_phone} подтвержден успешно!")
+
+            markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+
+            btn1 = types.KeyboardButton("Создать мероприятие")
+            btn2 = types.KeyboardButton("Посмотреть мероприятия")
+            btn3 = types.KeyboardButton("Мои мероприятия")
+            markup.add(btn1, btn2, btn3)
+            self.bot.send_message(
+                message.chat.id,
+                f"Ну что, {message.from_user.first_name}, продолжим?",
+                reply_markup=markup
+            )
 
         # Обработка кнопки "Подробнее" для каждого мероприятия
         @self.bot.callback_query_handler(func=lambda call: call.data.startswith("details_"))
@@ -183,5 +203,5 @@ class TelegramBotAdapter:
             self.bot.send_message(message.chat.id, f"Мероприятие '{name}' успешно создано!")
         except PermissionError:
             self.bot.send_message(message.chat.id,
-                                  "Вы не можете создать больше одного мероприятия. Подтвердите свой номер телефона.")
+                                  "Вы не можете создать больше двух мероприятия. Подтвердите свой номер телефона с помощью команды /verify.")
 

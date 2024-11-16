@@ -59,7 +59,7 @@ class SQLiteEventRepository(EventRepository):
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT * FROM events WHERE host_id = ?", (user_id,)
+            "SELECT * FROM events WHERE host_id = ? and date_time > datetime('now')", (user_id,)
         )
         rows = cursor.fetchall()
         conn.commit()

@@ -7,6 +7,8 @@ from adapters.db.sqlite_user_repository import SQLiteUserRepository
 from adapters.api.telegram_bot import TelegramBotAdapter
 import telebot
 
+from v2.project.domain.ports.user_repository import UserRepository
+
 # Путь к базе данных
 DB_PATH = "data/events.db"
 TOKEN = "7473067108:AAERYtQit6t6Yu4pfTBdVMp3CNSSDIN9PhU"
