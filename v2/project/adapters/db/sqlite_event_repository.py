@@ -77,7 +77,22 @@ class SQLiteEventRepository(EventRepository):
     def get_event_participants(self, event_id: int):
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        cursor.execute("SELECT user_id FROM registrations WHERE event_id = ?", (event_id,))
+        cursor.execute("SELECT * FROM registrations WHERE event_id = ?", (event_id,))
         users_id = cursor.fetchall()
         conn.close()
-        return users_id
+        return [reg[1] for reg in users_id]
+
+    def get_user_registrations(self, user_id):
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM registrations WHERE user_id = ?", (user_id,))
+        events_id = cursor.fetchall()
+        conn.close()
+        return [reg[2] for reg in events_id]
+
+    def delete_register(self, user_id, event_id):
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM registrations WHERE user_id = ? and event_id = ?", (user_id, event_id))
+        conn.commit()
+        conn.close()

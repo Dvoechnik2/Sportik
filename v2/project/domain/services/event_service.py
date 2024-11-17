@@ -44,3 +44,17 @@ class EventService:
 
     def get_event_participants(self, event_id: int) -> int:
         return self.event_repo.get_event_participants(event_id)
+
+    def get_user_registrations(self, user_id: int):
+        events_id = self.event_repo.get_user_registrations(user_id)
+        events = []
+        if events_id:
+            events = [self.event_repo.get_event(event_id) for event_id in events_id]
+        return events
+
+    def delete_register(self, user_id, event_id):
+        event = self.event_repo.get_event(event_id)
+        if event:
+            self.event_repo.delete_register(user_id, event_id)
+            return True
+        return False

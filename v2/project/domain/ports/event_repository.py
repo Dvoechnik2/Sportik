@@ -31,3 +31,9 @@ class EventRepository(ABC):
     @abstractmethod
     def get_event_participants(self, event_id: int) -> int:
         pass
+
+    def get_user_registrations(self, user_id):
+        pass
+
+    def delete_register(self, user_id, event_id):
+        pass

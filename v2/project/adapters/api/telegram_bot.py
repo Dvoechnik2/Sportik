@@ -35,7 +35,9 @@ class TelegramBotAdapter:
             btn1 = types.KeyboardButton("Создать мероприятие")
             btn2 = types.KeyboardButton("Посмотреть мероприятия")
             btn3 = types.KeyboardButton("Мои мероприятия")
-            markup.add(btn1, btn2, btn3)
+            btn4 = types.KeyboardButton("Мои регистрации")
+            markup.add(btn1, btn2)
+            markup.add(btn3, btn4)
 
             self.bot.send_message(
                 message.chat.id,
@@ -86,6 +88,24 @@ class TelegramBotAdapter:
                     self.bot.send_message(
                         message.chat.id,
                         f"Мероприятие: {event.name}\nДата: {event.date_time}\nСтатус: {event.status}",
+                        reply_markup=markup
+                    )
+
+        @self.bot.message_handler(func=lambda message: message.text == "Мои регистрации")
+        def handle_my_registrations(message):
+            user_id = message.from_user.id
+            user_registrations = self.event_service.get_user_registrations(user_id)
+            if not user_registrations:
+                self.bot.send_message(message.chat.id, "У вас нет запланированных мероприятий.")
+            else:
+                for event in user_registrations:
+                    markup = types.InlineKeyboardMarkup()
+                    btn_register = types.InlineKeyboardButton("Отменить регистрацию",
+                                                              callback_data=f"cancel-register_{event.id}")
+                    markup.add(btn_register)
+                    self.bot.send_message(
+                        message.chat.id,
+                        f"Мероприятие: {event.name}\nОписание: {event.description}\nМесто: {event.place}\nДата: {event.date_time}",
                         reply_markup=markup
                     )
 
@@ -160,6 +180,17 @@ class TelegramBotAdapter:
                 self.bot.send_message(call.message.chat.id, f"Мероприятие '{event.name}' было отменено.")
             else:
                 self.bot.send_message(call.message.chat.id, "Вы не можете отменить это мероприятие.")
+
+        @self.bot.callback_query_handler(func=lambda call: call.data.startswith("cancel-register"))
+        def handle_cancel(call):
+            event_id = int(call.data.split("_")[1])
+            user_id = call.message.chat.id
+            event = self.event_service.get_event(event_id)
+            # Проверка, что пользователь является организатором
+            if self.event_service.delete_register(user_id, event_id):
+                self.bot.send_message(call.message.chat.id, f"Регистрация на мероприятие '{event.name}' была отменена.")
+            else:
+                self.bot.send_message(call.message.chat.id, f"Произошла ошибка")
 
         self.bot.polling(none_stop=True)
 
