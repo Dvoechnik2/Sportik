@@ -96,3 +96,11 @@ class SQLiteEventRepository(EventRepository):
         cursor.execute("DELETE FROM registrations WHERE user_id = ? and event_id = ?", (user_id, event_id))
         conn.commit()
         conn.close()
+
+    def get_user_registration(self, user_id, event_id):
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM registrations WHERE user_id = ? AND event_id = ?", (user_id, event_id))
+        row = cursor.fetchone()
+        conn.close()
+        return row != None

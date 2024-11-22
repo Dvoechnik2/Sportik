@@ -56,5 +56,10 @@ class EventService:
         event = self.event_repo.get_event(event_id)
         if event:
             self.event_repo.delete_register(user_id, event_id)
+            event.participant_count -= 1
+            self.event_repo.update_event(event)
             return True
         return False
+
+    def get_user_registration(self, user_id, event_id):
+        return self.event_repo.get_user_registration(user_id, event_id)

@@ -50,6 +50,7 @@ class TelegramBotAdapter:
             user = self.user_repo.get_user(message.from_user.id)
             if user is None:
                 self.user_repo.add_user(User(message.chat.id, message.from_user.first_name))
+                user = self.user_repo.get_user(message.from_user.id)
             if (not user.is_verified and len(self.event_service.get_user_events(user.user_id)) >= 2):
                 self.bot.send_message(message.chat.id,
                                       "Вы не можете создать больше двух мероприятия. Подтвердите свой номер телефона "
@@ -105,7 +106,7 @@ class TelegramBotAdapter:
                     markup.add(btn_register)
                     self.bot.send_message(
                         message.chat.id,
-                        f"Мероприятие: {event.name}\nОписание: {event.description}\nМесто: {event.place}\nДата: {event.date_time}",
+                        f"Мероприятие: {event.name}\nОписание: {event.description}\nМесто: {event.place}\nДата: {event.date_time}\nОрганиатор: {event.host_name}\nКол-во участников: {event.participant_count}/{event.participant_limit if event.participant_limit else 'неограниченно'}",
                         reply_markup=markup
                     )
 
@@ -151,7 +152,7 @@ class TelegramBotAdapter:
                 markup.add(btn_register)
                 self.bot.send_message(
                     call.message.chat.id,
-                    f"Мероприятие: {event.name}\nОписание: {event.description}\nМесто: {event.place}\nДата: {event.date_time}",
+                    f"Мероприятие: {event.name}\nОписание: {event.description}\nМесто: {event.place}\nДата: {event.date_time}\nОрганиатор: {event.host_name}\nКол-во участников: {event.participant_count}/{event.participant_limit if event.participant_limit else 'неограниченно'}",
                     reply_markup=markup
                 )
             else:
@@ -162,11 +163,15 @@ class TelegramBotAdapter:
         def handle_register(call):
             event_id = int(call.data.split("_")[1])
             user_id = call.message.chat.id
-            success = self.event_service.register_user_for_event(user_id, event_id)
-            if success:
-                self.bot.send_message(call.message.chat.id, "Вы успешно зарегистрировались на мероприятие!")
+            registration = self.event_service.get_user_registration(user_id, event_id)
+            if registration:
+                self.bot.send_message(call.message.chat.id, "Вы уже зарегистрированы на это мероприятие.")
             else:
-                self.bot.send_message(call.message.chat.id, "Извините, регистрация на это мероприятие невозможна.")
+                success = self.event_service.register_user_for_event(user_id, event_id)
+                if success:
+                    self.bot.send_message(call.message.chat.id, "Вы успешно зарегистрировались на мероприятие!")
+                else:
+                    self.bot.send_message(call.message.chat.id, "Извините, регистрация на это мероприятие невозможна.")
 
         # Обработка отмены мероприятия
         @self.bot.callback_query_handler(func=lambda call: call.data.startswith("cancel_"))

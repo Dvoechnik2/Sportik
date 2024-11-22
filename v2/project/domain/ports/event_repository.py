@@ -37,3 +37,6 @@ class EventRepository(ABC):
 
     def delete_register(self, user_id, event_id):
         pass
+
+    def get_user_registration(self, user_id, event_id):
+        pass
