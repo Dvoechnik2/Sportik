@@ -24,5 +24,7 @@ notification_service = NotificationService(telebot.TeleBot(TOKEN), event_repo, u
 # Инициализация бота с нужными сервисами
 bot = TelegramBotAdapter(TOKEN, event_service, notification_service, user_repo)
 
+notification_service.send_reminders()
+
 # Запуск бота
 bot.start()

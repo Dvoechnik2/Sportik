@@ -18,17 +18,7 @@ class NotificationService:
         for event in events:
             event_date = datetime.strptime(event.date_time, '%Y-%m-%d %H:%M')
             # Проверить, что мероприятие через день
-            if event_date - timedelta(days=1) <= datetime.now() < event_date:
+            if event_date - timedelta(days=1) <= datetime.now():
                 participants = self.event_repo.get_event_participants(event.id)
                 for user_id in participants:
-                    user = self.user_repo.get_user(user_id)
-                    if user:
-                        self.bot.send_message(user.user_id, f"Напоминание: завтра состоится мероприятие '{event.name}'")
-
-    def notify_cancellation(self, event_id):
-        event = self.event_repo.get_event(event_id)
-        participants = self.event_repo.get_event_participants(event_id)
-        for user_id in participants:
-            user = self.user_repo.get_user(user_id)
-            if user:
-                self.bot.send_message(user.user_id, f"Мероприятие '{event.name}' было отменено организатором.")
+                    self.bot.send_message(user_id, f"Напоминание: {event_date} состоится мероприятие '{event.name}'")

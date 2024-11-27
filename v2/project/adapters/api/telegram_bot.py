@@ -100,15 +100,16 @@ class TelegramBotAdapter:
                 self.bot.send_message(message.chat.id, "У вас нет запланированных мероприятий.")
             else:
                 for event in user_registrations:
-                    markup = types.InlineKeyboardMarkup()
-                    btn_register = types.InlineKeyboardButton("Отменить регистрацию",
-                                                              callback_data=f"cancel-register_{event.id}")
-                    markup.add(btn_register)
-                    self.bot.send_message(
-                        message.chat.id,
-                        f"Мероприятие: {event.name}\nОписание: {event.description}\nМесто: {event.place}\nДата: {event.date_time}\nОрганиатор: {event.host_name}\nКол-во участников: {event.participant_count}/{event.participant_limit if event.participant_limit else 'неограниченно'}",
-                        reply_markup=markup
-                    )
+                    if event:
+                        markup = types.InlineKeyboardMarkup()
+                        btn_register = types.InlineKeyboardButton("Отменить регистрацию",
+                                                                  callback_data=f"cancel-register_{event.id}")
+                        markup.add(btn_register)
+                        self.bot.send_message(
+                            message.chat.id,
+                            f"Мероприятие: {event.name}\nОписание: {event.description}\nМесто: {event.place}\nДата: {event.date_time}\nОрганиатор: {event.host_name}\nКол-во участников: {event.participant_count}/{event.participant_limit if event.participant_limit else 'неограниченно'}",
+                            reply_markup=markup
+                        )
 
 
         @self.bot.message_handler(commands=['verify'])
@@ -183,6 +184,9 @@ class TelegramBotAdapter:
             if event and event.host_id == user_id:
                 self.event_service.delete_event(event_id)
                 self.bot.send_message(call.message.chat.id, f"Мероприятие '{event.name}' было отменено.")
+                participants = self.event_service.get_event_participants(event_id)
+                for user_id in participants:
+                    self.bot.send_message(user_id, f"Мероприятие '{event.name}' было отменено организатором.")
             else:
                 self.bot.send_message(call.message.chat.id, "Вы не можете отменить это мероприятие.")
 
