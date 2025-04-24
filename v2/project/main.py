@@ -11,7 +11,7 @@ from v2.project.domain.ports.user_repository import UserRepository
 
 # Путь к базе данных
 DB_PATH = "data/events.db"
-TOKEN = "7473067108:AAERYtQit6t6Yu4pfTBdVMp3CNSSDIN9PhU"
+TOKEN = ""
 
 # Инициализация репозиториев для работы с БД
 event_repo = SQLiteEventRepository(DB_PATH)
